@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Random Album Generator</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+
+  </head>
+  <body>
+    <div class="container">
+      <h1>Random Album Generator</h1>
+      <table class="table table-bordered">
+        <tr>
+          <td> Band </td>
+          <td id="band"> <i>{loading}</i> </td>
+        </tr>
+        <tr>
+          <td> Album </td>
+          <td id="album"> <i>{loading}</i> </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    
+    
+    <script>
+      function randomBand() {
+        var url = "http://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&format=json&callback=?"
+        $.getJSON(url, function( response ) {
+          $("#band").text(response.query.random[0].title);
+        });
+      };
+      
+      function randomAlbum() {
+        getViaYahoo("http://www.iheartquotes.com/api/v1/random?format=json", function(response) {
+          var quote = response.quote;
+          
+           // Remove person name
+          var cleanQuote = quote.match(/(.*)--/);
+          if (cleanQuote) { quote = cleanQuote[0]; }
+          
+          // Remove punctuation
+          quote = quote.replace(/[^\w\s]/g,""); 
+          
+          // Keep last 5 words only
+          var words = quote.match(/\S+/g).map(function (word) {
+            // capitalize
+            return word && word[0].toUpperCase() + word.slice(1);
+          });
+          words = words.slice(words.length - 5);
+          quote = words.join(" ");
+          
+          $("#album").text(quote);
+        });
+      };
+      
+      function getViaYahoo(url, callback) {
+        $.getJSON("http://query.yahooapis.com/v1/public/yql",
+          {
+            q:      "select * from json where url=\""+ url + "\"",
+            format: "json"
+          },
+          function( response ) {
+            callback(response.query.results.json);
+          }
+        );
+      }
+      
+      $(document).ready(function () {
+        randomBand();
+        randomAlbum();
+      });
+      
+    </script>
+  </body>
+</html>
