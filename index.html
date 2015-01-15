@@ -23,6 +23,10 @@
           <td> Album </td>
           <td id="album"> <i>{loading}</i> </td>
         </tr>
+        <tr>
+          <td> Cover Art </td>
+          <td id="cover"> <i>{loading}</i> </td>
+        </tr>
       </table>
     </div>
 
@@ -42,10 +46,10 @@
       
       function randomAlbum() {
         getViaYahoo("http://www.iheartquotes.com/api/v1/random?format=json", function(response) {
-          var quote = response.quote;
+          var quote = response.json.quote;
           
            // Remove person name
-          var quote = quote.replace(/--.*/, "");
+          quote = quote.replace(/--.*/, "");
           
           // Remove punctuation
           quote = quote.replace(/[^\w\s]/g,""); 
@@ -62,21 +66,46 @@
         });
       };
       
-      function getViaYahoo(url, callback) {
+      function getViaYahoo(url, callback, xpath=null) {
+        var query = "select * from "
+        if (xpath) {
+          query += "html where url='"+ url + "' and xpath='" + xpath + "'";
+        }
+        else {
+          query += "json where url='"+ url + "'";
+        }
         $.getJSON("http://query.yahooapis.com/v1/public/yql",
           {
-            q:      "select * from json where url=\""+ url + "\"",
+            q:      query,
             format: "json"
           },
           function( response ) {
-            callback(response.query.results.json);
+            callback(response.query.results);
           }
         );
+      }
+      
+      function randomCoverArt() {
+        var url = "http://www.flickr.com/explore/interesting/7days";
+        var xpath = '//span[@class="photo_container pc_m"]/a/@href';
+        
+        getViaYahoo(url, function( response ) {
+          var url = "https://www.flickr.com" + response.a[0].href;
+          var xpath = '//img/@src'
+          
+          getViaYahoo(url, function( response ) {
+            var url = response.img.filter( function (item) {
+              return $(item).attr('height') > 100 && $(item).attr('width') > 100;
+            });
+            $("#cover").replaceWith("<img src='" + url[0].src + "'/>");
+          }, xpath);
+        }, xpath);
       }
       
       $(document).ready(function () {
         randomBand();
         randomAlbum();
+        randomCoverArt();
       });
       
     </script>
