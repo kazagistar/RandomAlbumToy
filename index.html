@@ -45,7 +45,7 @@
       };
       
       function randomAlbum() {
-        getViaYahoo("http://www.iheartquotes.com/api/v1/random?format=json", function(response) {
+        getViaYahoo("http://www.iheartquotes.com/api/v1/random?format=json", null, function(response) {
           var quote = response.json.quote;
           
            // Remove person name
@@ -66,7 +66,7 @@
         });
       };
       
-      function getViaYahoo(url, callback, xpath=null) {
+      function getViaYahoo(url, xpath, callback) {
         var query = "select * from "
         if (xpath) {
           query += "html where url='"+ url + "' and xpath='" + xpath + "'";
@@ -89,17 +89,17 @@
         var url = "http://www.flickr.com/explore/interesting/7days";
         var xpath = '//span[@class="photo_container pc_m"]/a/@href';
         
-        getViaYahoo(url, function( response ) {
+        getViaYahoo(url, xpath, function( response ) {
           var url = "https://www.flickr.com" + response.a[0].href;
           var xpath = '//img/@src'
           
-          getViaYahoo(url, function( response ) {
+          getViaYahoo(url, xpath, function( response ) {
             var url = response.img.filter( function (item) {
               return $(item).attr('height') > 100 && $(item).attr('width') > 100;
             });
             $("#cover").replaceWith("<img src='" + url[0].src + "'/>");
-          }, xpath);
-        }, xpath);
+          });
+        });
       }
       
       $(document).ready(function () {
